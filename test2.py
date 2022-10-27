@@ -1,80 +1,176 @@
-# All of the functions we need come automatically with python but do need to be imported.
+# # import multiprocessing
+# # import time
+# #
+# #
+# # def heavy(n, i, proc):
+# #     for x in range(1, n):
+# #         for y in range(1, n):
+# #             x ** y
+# #     print(f"Цикл № {i} ядро {proc}")
+# #
+# #
+# # def sequential(calc, proc):
+# #     print(f"Запускаем поток № {proc}")
+# #     for i in range(calc):
+# #         heavy(500, i, proc)
+# #     print(f"{calc} циклов вычислений закончены. Процессор № {proc}")
+# #
+# #
+# # def processesed(procs, calc):
+# #     # procs - количество ядер
+# #     # calc - количество операций на ядро
+# #
+# #     processes = []
+# #
+# #     # делим вычисления на количество ядер
+# #     for proc in range(procs):
+# #         p = multiprocessing.Process(target=sequential, args=(calc, proc))
+# #         processes.append(p)
+# #         p.start()
+# #
+# #     # Ждем, пока все ядра
+# #     # завершат свою работу.
+# #     for p in processes:
+# #         p.join()
+# #
+# #
+# # if __name__ == "__main__":
+# #     start = time.time()
+# #     # узнаем количество ядер у процессора
+# #     n_proc = multiprocessing.cpu_count()
+# #     # вычисляем сколько циклов вычислений будет приходится
+# #     # на 1 ядро, что бы в сумме получилось 80 или чуть больше
+# #     calc = 80 // n_proc + 1
+# #     processesed(n_proc, calc)
+# #     end = time.time()
+# #     print(f"Всего {n_proc} ядер в процессоре")
+# #     print(f"На каждом ядре произведено {calc} циклов вычислений")
+# #     print(f"Итого {n_proc * calc} циклов за: ", end - start)
+#
+# import multiprocessing as mp
+# import time
+# from itertools import permutations
+#
+# w = (["V", 5], ["X", 2], ["Y", 1], ["Z", 3])
+# chars = """~,!@"'#$%^&*()[]{}-<>/\.:;=+?abcdefghijklnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"""
+# # length = int(input('длина пароля?' + "\n"))
+# length = 3
+# data = permutations(chars, length)
+# # print(data)
+#
+# def work_log(_data):
+#     start = time.time()
+#     counter = 0
+#     for comb in range(100000):
+#         counter += 1
+#     print(f"Поток какой-то там, counter = {counter}")
+#     print(f"Итоговое время потока: {time.time() - start}")
+#
+#     pass
+#
+#
+# def handler():
+#     p = mp.Pool(mp.cpu_count())
+#     p.map(work_log, data)
+#
+#
+# if __name__ == '__main__':
+#     start = time.time()
+#     handler()
+#     print(f"Всего {mp.cpu_count()} ядер в процессоре")
+#     print(f"Итоговое время: {time.time() - start}")
+
+
+import string
+import multiprocessing as mp
 import itertools
+import os
+from random import choice
 import time
 
-# This is basically a list of all the different characters that will be tried.
-# You will notice many symbols missing as they were slowing down efficiency and very unlikely to appear.
-Alphabet = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_.")
 
-# This allows the user to decide what password the program will "crack" so they can decide the difficulty
-# And also so they are able to see the results a lot more reliably
-Password = input("What is your password?\n")
+# def do_job(first_letter):
+#     counter = 0
+#     for x in itertools.combinations_with_replacement(alphabet, alphabet, alphabet):
+#         newb = tuple(first_letter) + x
+#         # print(newb)
+#         # if newb == (('#', ',') or ('~', '{') or ('^', '~') or ('~', '~')):
+#         if isinstance(newb, tuple):
+#             print(f"Gotcha!")
+#             break
+#         counter += 1
+#         # print(x)
+#     print(f"{counter}")
 
-# This sets the start time so that it can be used later on in the program to calculate how long the program took.
-start = time.time()
 
-# This tells us how many combinations are used.
-counter = 1
-
-# This starts off the number of characters as 1.
-CharLength = 1
-
-# This stops the program once it gets to 25 characters (most people would run out of patience WAY before that
-# But if you feel the need you can increase the number.
-for CharLength in range(25):
-
-    # This finds all of the possible combinations of characters that are of the correct length.
-    passwords = (itertools.product(Alphabet, repeat=CharLength))
-
-    # This prints three blank lines.
-    print("\n \n")
-
-    # These print information for the user on the progress of the crack.
-    print("currently working on passwords with ", CharLength, " chars")
-    try:
-        print("We are currently at ", (counter / (time.time() - start)), "attempts per seconds")
-    except Exception:
-        print(Exception)
-    print("It has been ", time.time() - start, " seconds!")
-    print("We have tried ", counter, " possible passwords!")
-
-    # This is the way to print the products of generators.
-    for i in passwords:
-
-        # This increases the number of combinations tried by one to show that one more has been tried.
+def job(password, first_letter, chars, length, flag, verboseflag):
+    counter = 0
+    for x in itertools.permutations(chars, length):
+        newb = tuple(first_letter) + x
+        if (verboseflag):
+            # print(newb)
+            print(f"{os.getpid()} of {os.getppid()} is trying {newb}\n")
+        # if newb == (('#', ',') or ('!', '!') or ('~', '~') or ('!', '~')):
+        if ("".join(newb)) == password:
+            # if isinstance(newb, tuple):
+            print(f"Gotcha!")
+            flag.value = 1
+            break
         counter += 1
+        if (flag.value == 1):
+            break
+        # print(x)
+    print(f"{counter}")
+    pass
 
-        # As the itertools.products() returns a tuple, it has to be converted into a sting.
-        i = str(i)
 
-        # The parts that were added as a result of conversion from tuple have to be removed.
-        i = i.replace("[", "")
-        i = i.replace("]", "")
-        i = i.replace("'", "")
-        i = i.replace(" ", "")
-        i = i.replace(",", "")
-        i = i.replace("(", "")
-        i = i.replace(")", "")
+# if __name__ == "__main__":
+#     pool = mp.Pool()
+#     results = []
+#     for i in range(num_parts):
+#         if i == num_parts - 1:
+#             first_bit = alphabet[part_size * i:]
+#         else:
+#             first_bit = alphabet[part_size * i: part_size * (i + 1)]
+#         results.append(pool.apply_async(do_job(first_bit)))
+#
+#     pool.close()
+#     pool.join()
+#
+# if __name__ == "__main__":
+#     pool = mp.Pool()
+#     results = []
+#     for i in alphabet:
+#         res = pool.apply_async(do_job(i))
+#         if (res):
+#             results.append(res)
+#
+#     pool.close()
+#     pool.join()
+#     print(results)
 
-        # This checks if the password created by the user was correct.
-        if i == Password:
-            # This takes the time at which the program finished.
-            end = time.time()
+def main():
+    alphabet = """~,!@"'#$%^&*()[]{}-<>/\.:;=+?abcdefghijklnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"""
+    # num_parts = 4
+    # part_size = len(alphabet) // num_parts
+    processes = []
+    flag = mp.Value('i', 0)
+    verbose = True
+    length = int(input('длина пароля?' + "\n"))
+    password = ''
+    for i in range(length):
+        password += choice(alphabet)
+    print("Ваш пароль: ", password)
+    start_time = time.time()
+    for l in alphabet:
+        processes.append(mp.Process(target=job, args=(password, l, alphabet, length - 1, flag, verbose)))
+    for proc in processes:
+        proc.start()
+    for proc in processes:
+        proc.join()
+    print("--- %s seconds (Hacking) ---" % (time.time() - start_time))
+    pass
 
-            # This works out the time it took to find the password.
-            timetaken = end - start
 
-            # This tells the user how long it took to find the password as well as how many attempts it took.
-            print("Found it in ", timetaken, " seconds and ", counter, "attempts")
-
-            # This tells the user how many attempst were made per second.
-            print("That is ", counter / timetaken, " attempts per second!")
-
-            # This prints the password to confirm for the user that the program was sucessful.
-            print(i)
-
-            # This stops the program from exiting until the user presses enter.
-            input("Press enter when you have finished")
-
-            # This exits the program
-            exit()
+if __name__ == "__main__":
+    main()
